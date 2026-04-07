@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-12">
+    <div class="text-center mb-16">
+        <h1 class="text-4xl font-extrabold text-white mb-4">Professional <span class="text-purple-500">Security Services</span></h1>
+        <p class="text-gray-400 max-w-3xl mx-auto text-lg leading-relaxed">
+            Combining automated power with manual expertise. I provide end-to-end web penetration testing to identify, exploit, and help remediate critical security flaws.
+        </p>
+    </div>
+
+    <div class="flex flex-wrap justify-center gap-6">
+        
+        <div class="w-full md:w-[48%] lg:w-[23%] bg-gray-800 p-8 rounded-2xl border border-purple-900 hover:border-purple-500 transition-all duration-300 group">
+            <div class="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center mb-6 group-hover:bg-purple-600 transition">
+                <span class="text-2xl">🚀</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-3">Automated Scanning</h3>
+            <p class="text-gray-400 text-xs leading-relaxed">
+                High-speed vulnerability detection using industry-leading tools like Nuclei and custom scripts to find CVEs, misconfigurations, and leaked sensitive data.
+            </p>
+        </div>
+
+        <div class="w-full md:w-[48%] lg:w-[23%] bg-gray-800 p-8 rounded-2xl border border-purple-900 hover:border-purple-500 transition-all duration-300 group">
+            <div class="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center mb-6 group-hover:bg-purple-600 transition">
+                <span class="text-2xl">🕵️</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-3">Web Pentesting</h3>
+            <p class="text-gray-400 text-xs leading-relaxed">
+                Manual in-depth assessment focusing on business logic flaws, IDORs, and complex injection attacks that automated tools often miss.
+            </p>
+        </div>
+
+        <div class="w-full md:w-[48%] lg:w-[23%] bg-gray-800 p-8 rounded-2xl border border-purple-900 hover:border-purple-500 transition-all duration-300 group">
+            <div class="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center mb-6 group-hover:bg-purple-600 transition">
+                <span class="text-2xl">🛡️</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-3">Security Auditing</h3>
+            <p class="text-gray-400 text-xs leading-relaxed">
+                Comprehensive audit of your web infrastructure, including SSL/TLS analysis and hardening of HTTP security headers (HSTS, CSP, etc.).
+            </p>
+        </div>
+
+        <div class="w-full md:w-[48%] lg:w-[23%] bg-gray-800 p-8 rounded-2xl border border-purple-900 hover:border-purple-500 transition-all duration-300 group">
+            <div class="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center mb-6 group-hover:bg-purple-600 transition">
+                <span class="text-2xl">📝</span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-3">VDP Documentation</h3>
+            <p class="text-gray-400 text-xs leading-relaxed">
+                Professional documentation with clear reproduction steps, impact assessment (CVSS), and actionable remediation guidance for developers.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="mt-20 bg-purple-900/20 border border-purple-500/30 rounded-2xl p-10 text-center">
+        <h2 class="text-2xl font-bold text-white mb-4">Looking for a comprehensive security assessment?</h2>
+        <p class="text-gray-400 mb-8">I am available for manual audits and consulting on complex web applications.</p>
+        <a href="mailto:sameershahzad835@gmail.com" class="inline-block purple-gradient px-10 py-4 rounded-xl font-bold text-white hover:opacity-90 transition transform hover:scale-105 shadow-xl">
+            Contact for Private Audit
+        </a>
+    </div>
+</div>
+{% endblock %}

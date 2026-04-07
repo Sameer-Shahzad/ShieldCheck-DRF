@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShieldCheck | Security Auditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <style>
+        body { background-color: #1a1a2e; color: #ffffff; }
+        .purple-gradient { background: linear-gradient(135deg, #6b21a8 0%, #4c1d95 100%); }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    
+    {% include 'navbar.html' %}
+
+    <div class="flex-grow container mx-auto px-4 py-10">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% include 'footer.html' %}
+
+</body>
+</html>

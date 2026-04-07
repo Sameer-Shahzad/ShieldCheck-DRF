@@ -1,0 +1,41 @@
+<footer class="bg-gray-900 border-t border-purple-900 pt-10 pb-10 mt-40">
+    <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-start gap-12">
+        
+        <div class="max-w-xs">
+            <h3 class="text-purple-400 font-bold text-lg mb-4">About ShieldCheck</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                ShieldCheck is a specialized security auditor designed to protect web applications by detecting missing security headers.
+            </p>
+        </div>
+
+        <div>
+            <h3 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Quick Links</h3>
+            <ul class="text-gray-400 text-sm space-y-3">
+                <li><a href="{% url 'about' %}" class="hover:text-purple-400 transition">About Us</a></li>
+                <li><a href="{% url 'privacy' %}"class="hover:text-purple-400 transition">Privacy Policy</a></li>
+                <li><a href="{% url 'services' %}"class="hover:text-purple-400 transition">Services</a></li>
+            </ul>
+        </div>
+
+        <div class="max-w-xs">
+            <h3 class="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Contact Us</h3>
+            <ul class="text-gray-400 text-sm space-y-3">
+                <li class="flex items-center gap-2">
+                    <span class="text-purple-400">Email:</span>
+                    <span>sameershahzad835@gmail.com</span>
+                </li>
+                <li class="flex items-center gap-2">
+                    <span class="text-purple-400">Support:</span>
+                    <span>Mon - Fri (9 AM - 6 PM)</span>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="container mx-auto px-6 mt-12 pt-6 border-t border-gray-800 text-center">
+        <p class="text-gray-500 text-xs">
+            &copy; 2026 ShieldCheck | Developed by Sameer Shahzad
+        </p>
+    </div>
+</footer>
