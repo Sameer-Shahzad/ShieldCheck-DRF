@@ -17,3 +17,7 @@ def privacy (request):
 
 def services (request):
     return render(request, 'footerLinks/services.html')
+
+
+def scanDetails (request):
+    return render(request, 'scan_result.html')

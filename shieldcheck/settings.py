@@ -127,6 +127,15 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+
+# Throttling
+
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10/day',  
+    }
+}
+
 # HSTS (Strict-Transport-Security)
 # SECURE_HSTS_SECONDS = 31536000     
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True 
