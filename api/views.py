@@ -64,7 +64,7 @@ class scanView(APIView):
             
             try:
                 hsts = headers.get ('Strict-Transport-Security', '')
-            except error as e:
+            except Exception as e:
                 return Response({"error": "something"}, status=400)
                 
             if not hsts:
