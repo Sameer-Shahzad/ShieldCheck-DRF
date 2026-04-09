@@ -133,6 +133,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'user': '10/day',  
+        'anon': '5/minute',
     }
 }
 
