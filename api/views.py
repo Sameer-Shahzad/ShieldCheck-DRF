@@ -186,6 +186,115 @@ class scanView(APIView):
                 permission_policy_impact = 'Medium'
                 permission_policy_solution = 'Review Permissions-Policy to restrict access to sensitive features.'
                 
+            
+            set_cookie = headers.get('Set-Cookie', '')
+            
+            if 'httponly' in set_cookie.lower():
+                set_cookie_httpOnly_status = 'SECURE'
+                set_cookie_httpOnly_impact = 'Low'
+                set_cookie_httpOnly_solution = 'HttpOnly flag is set for cookies, which is good.'
+                if 'secure' in set_cookie.lower():
+                    set_cookie_secure_status = 'SECURE'
+                    set_cookie_secure_impact = 'Low'
+                    set_cookie_secure_solution = 'Secure flag is set for cookies, which is good.'
+                    if 'samesite=strict' in set_cookie.lower() or 'samesite=lax' in set_cookie.lower():
+                        set_cookie_status = 'SECURE'
+                        set_cookie_impact = 'Medium'
+                        set_cookie_solution = 'Cookies are properly configured. HttpOnly, Secure, and SameSite flags are set.'
+                    elif 'samesite=none' in set_cookie.lower():
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'Critical'
+                        set_cookie_solution = 'Strictly avoid using SameSite=None unless necessary, as it allows cross-site cookie usage. However, HttpOnly and Secure flags are set, which is good.'
+                    else:
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'High'
+                        set_cookie_solution = 'None of the required flags are set for cookies. Consider setting SameSite attribute to Strict or Lax for cookies to enhance security.'
+                else:
+                    set_cookie_secure_status = 'WARNING'
+                    set_cookie_secure_impact = 'High'
+                    set_cookie_secure_solution = 'Use Secure flag for cookies to ensure they are only sent over HTTPS.'
+                    if 'samesite=strict' in set_cookie.lower() or 'samesite=lax' in set_cookie.lower():
+                        set_cookie_status = 'SECURE'
+                        set_cookie_impact = 'Medium'
+                        set_cookie_solution = 'Cookies are properly configured. HttpOnly, Secure, and SameSite flags are set.'
+                    elif 'samesite=none' in set_cookie.lower():
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'Critical'
+                        set_cookie_solution = 'Strictly avoid using SameSite=None unless necessary, as it allows cross-site cookie usage. However, HttpOnly and Secure flags are set, which is good.'
+                    else:
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'High'
+                        set_cookie_solution = 'None of the required flags are set for cookies. Consider setting SameSite attribute to Strict or Lax for cookies to enhance security.'
+            else:
+                set_cookie_httpOnly_status = 'WARNING'
+                set_cookie_httpOnly_impact = 'Medium'
+                set_cookie_httpOnly_solution = 'Use HttpOnly flag for cookies to mitigate XSS risks.'
+                if 'secure' in set_cookie.lower():
+                    set_cookie_secure_status = 'SECURE'
+                    set_cookie_secure_impact = 'Low'
+                    set_cookie_secure_solution = 'Secure flag is set for cookies, which is good.'
+                    if 'samesite=strict' in set_cookie.lower() or 'samesite=lax' in set_cookie.lower():
+                        set_cookie_status = 'SECURE'
+                        set_cookie_impact = 'Medium'
+                        set_cookie_solution = 'Cookies are properly configured. HttpOnly, Secure, and SameSite flags are set.'
+                    elif 'samesite=none' in set_cookie.lower():
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'Critical'
+                        set_cookie_solution = 'Strictly avoid using SameSite=None unless necessary, as it allows cross-site cookie usage. However, HttpOnly and Secure flags are set, which is good.'
+                    else:
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'High'
+                        set_cookie_solution = 'None of the required flags are set for cookies. Consider setting SameSite attribute to Strict or Lax for cookies to enhance security.'
+                else:
+                    set_cookie_secure_status = 'WARNING'
+                    set_cookie_secure_impact = 'High'
+                    set_cookie_secure_solution = 'Use Secure flag for cookies to ensure they are only sent over HTTPS.'
+                    if 'samesite=strict' in set_cookie.lower() or 'samesite=lax' in set_cookie.lower():
+                        set_cookie_status = 'SECURE'
+                        set_cookie_impact = 'Medium'
+                        set_cookie_solution = 'Cookies are properly configured. HttpOnly, Secure, and SameSite flags are set.'
+                    elif 'samesite=none' in set_cookie.lower():
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'Critical'
+                        set_cookie_solution = 'Strictly avoid using SameSite=None unless necessary, as it allows cross-site cookie usage. However, HttpOnly and Secure flags are set, which is good.'
+                    else:
+                        set_cookie_status = 'WARNING'
+                        set_cookie_impact = 'High'
+                        set_cookie_solution = 'None of the required flags are set for cookies. Consider setting SameSite attribute to Strict or Lax for cookies to enhance security.'
+                        
+                        
+            access_control = headers.get('Access-Control-Allow-Origin', '')
+            credentials = headers.get('Access-Control-Allow-Credentials', '')
+            if access_control == '*':
+                access_control_status = 'WARNING'
+                access_control_impact = 'High'
+                access_control_solution = 'Avoid using wildcard (*) in Access-Control-Allow-Origin to prevent unauthorized cross-origin requests.'
+                if credentials.lower() == 'true':
+                    access_control_status = 'CRITICAL'
+                    access_control_impact = 'Critical'
+                    access_control_solution = 'Using wildcard (*) in Access-Control-Allow-Origin with Access-Control-Allow-Credentials set to true is a critical security risk. Avoid this configuration to prevent unauthorized cross-origin requests with credentials.'
+            elif access_control:
+                access_control_status = 'SECURE'
+                access_control_impact = 'Low'
+                access_control_solution = f'Access-Control-Allow-Origin is set to {access_control}, which is good.'
+            else:
+                access_control_status = 'MISSING'
+                access_control_impact = 'Medium'
+                access_control_solution = 'Implement Access-Control-Allow-Origin to control cross-origin resource sharing.'
+                
+                
+                
+            clear_site_data = headers.get('Clear-Site-Data', '')
+            if clear_site_data:
+                clear_site_data_status = 'SECURE'
+                clear_site_data_impact = 'Low'
+                clear_site_data_solution = 'Clear-Site-Data is properly configured to enhance privacy and security.'
+            elif clear_site_data:
+                clear_site_data_status = 'WARNING'
+                clear_site_data_impact = 'Medium'
+                clear_site_data_solution = 'Review Clear-Site-Data configuration to ensure it effectively protects user data.'
+                
+            coop = headers.get('Cross-Origin-Opener-Policy', '')
                 
         
             return Response({
@@ -213,9 +322,38 @@ class scanView(APIView):
                 "status": referer_policy_status,
                 "impact": referer_policy_impact,
                 "solution": referer_policy_solution
+            },
+            "set_cookie_for_httpOnly": {
+                "status": set_cookie_httpOnly_status,
+                "impact": set_cookie_httpOnly_impact,
+                "solution": set_cookie_httpOnly_solution
+            },
+            "set_cookie_for_secure": {
+                "status": set_cookie_secure_status,
+                "impact": set_cookie_secure_impact,
+                "solution": set_cookie_secure_solution
+            },
+            "set_cookie": {
+                "status": set_cookie_status,
+                "impact": set_cookie_impact,
+                "solution": set_cookie_solution
+            },
+            "permissions_policy": {
+                "status": permission_policy_status,
+                "impact": permission_policy_impact,
+                "solution": permission_policy_solution
+            },
+            "access_control_allow_origin": {
+                "status": access_control_status,
+                "impact": access_control_impact,
+                "solution": access_control_solution
+            },
+            "clear_site_data": {
+                "status": clear_site_data_status,
+                "impact": clear_site_data_impact,
+                "solution": clear_site_data_solution    
             }
-            
-        }, status=200)
+            }, status=200)
                 
                     
         else:
