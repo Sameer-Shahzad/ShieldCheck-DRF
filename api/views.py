@@ -41,9 +41,9 @@ class scanView(APIView):
             port = parsed.port
             if port and port not in [443]:
                 return Response({"error": "Blocked unsafe port"}, status=403)
-
+            resolved_ip = None
             try:
-                # 2. Resolve all IPs (IPv4 + IPv6)
+                # Resolve all IPs (IPv4 + IPv6)
                 addr_info = socket.getaddrinfo(hostname, None)
 
                 for result in addr_info:
@@ -57,10 +57,12 @@ class scanView(APIView):
                         ip_obj.is_link_local or
                         ip_obj.is_multicast
                     ):
+                        
                         return Response(
                             {"error": "Access to internal or unsafe IPs is blocked"},
                             status=403
                         )
+                    resolved_ip = ip
 
             except socket.gaierror:
                 return Response({"error": "DNS resolution failed"}, status=400)
@@ -69,7 +71,7 @@ class scanView(APIView):
 ##### HTTP SECURITY HEADERS CHECKING CODE #####
 
             try:
-                redirect_response = requests.get(target_url, timeout=10, allow_redirects=False)
+                redirect_response = requests.get(f"https://{resolved_ip}/", headers={"Host": hostname}, timeout=10, allow_redirects=False, verify=True)
             except requests.exceptions.RequestException:
                 return Response({"error": "something"}, status=400)
 
@@ -181,7 +183,7 @@ class scanView(APIView):
                 permission_policy_status = 'MISSING'
                 permission_policy_impact = 'Low'
                 permission_policy_solution = 'Implement Permissions-Policy to control access to powerful features.'
-            elif 'geolocation' in permission_policy.lower() or 'camera' in permission_policy.lower or 'microphone' in permission_policy.lower():
+            elif 'geolocation' in permission_policy.lower() or 'camera' in permission_policy.lower() or 'microphone' in permission_policy.lower():
                 permission_policy_status = 'WARNING'
                 permission_policy_impact = 'Medium'
                 permission_policy_solution = 'Review Permissions-Policy to restrict access to sensitive features.'
@@ -265,7 +267,8 @@ class scanView(APIView):
                         
             access_control = headers.get('Access-Control-Allow-Origin', '')
             credentials = headers.get('Access-Control-Allow-Credentials', '')
-            if access_control == '*':
+            strip_access_control = access_control.strip()
+            if strip_access_control == '*':
                 access_control_status = 'WARNING'
                 access_control_impact = 'High'
                 access_control_solution = 'Avoid using wildcard (*) in Access-Control-Allow-Origin to prevent unauthorized cross-origin requests.'
@@ -273,7 +276,7 @@ class scanView(APIView):
                     access_control_status = 'CRITICAL'
                     access_control_impact = 'Critical'
                     access_control_solution = 'Using wildcard (*) in Access-Control-Allow-Origin with Access-Control-Allow-Credentials set to true is a critical security risk. Avoid this configuration to prevent unauthorized cross-origin requests with credentials.'
-            elif access_control:
+            elif access_control and strip_access_control != 'null':
                 access_control_status = 'SECURE'
                 access_control_impact = 'Low'
                 access_control_solution = f'Access-Control-Allow-Origin is set to {access_control}, which is good.'
@@ -289,14 +292,31 @@ class scanView(APIView):
                 clear_site_data_status = 'SECURE'
                 clear_site_data_impact = 'Low'
                 clear_site_data_solution = 'Clear-Site-Data is properly configured to enhance privacy and security.'
-            elif clear_site_data:
+            else:
                 clear_site_data_status = 'WARNING'
                 clear_site_data_impact = 'Medium'
                 clear_site_data_solution = 'Review Clear-Site-Data configuration to ensure it effectively protects user data.'
                 
             coop = headers.get('Cross-Origin-Opener-Policy', '')
+            
+            if not coop:
+                coop_status = 'MISSING'
+                coop_impact = 'Medium'
+                coop_solution = 'Implement Cross-Origin-Opener-Policy to enhance isolation and protect against cross-origin attacks.'
+            elif 'same-origin-allow-popups' in coop.lower():
+                coop_status = 'WARNING'
+                coop_impact = 'Low'
+                coop_solution = 'Cross-Origin-Opener-Policy is set to same-origin-allow-popups, which may introduce security risks.'
+            elif 'same-origin' in coop.lower():
+                coop_status = 'SECURE'
+                coop_impact = 'Low'
+                coop_solution = 'Cross-Origin-Opener-Policy is properly configured.'
+            else:
+                coop_status = 'WARNING'
+                coop_impact = 'Medium'
+                coop_solution = 'Use same-origin for Cross-Origin-Opener-Policy to enhance security.'
                 
-        
+                
             return Response({
             "csp": {
                 "status": csp_status,
@@ -352,6 +372,11 @@ class scanView(APIView):
                 "status": clear_site_data_status,
                 "impact": clear_site_data_impact,
                 "solution": clear_site_data_solution    
+            },
+            "coop": {
+                "status": coop_status,
+                "impact": coop_impact,
+                "solution": coop_solution
             }
             }, status=200)
                 
