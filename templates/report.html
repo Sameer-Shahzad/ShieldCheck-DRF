@@ -1,5 +1,95 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    
+    <div class="bg-gray-800 border border-purple-500 rounded-lg p-6 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Security Audit Report</h1>
+                <p id="displayTarget" class="text-purple-400 font-mono"></p>
+            </div>
+            <div id="grade" class="bg-yellow-500 text-black px-6 py-4 rounded-full font-black text-3xl">B-</div>
+        </div>
+    </div>
+
+    <div id="reportSection" class="space-y-4">
+        <p class="text-white text-center">Loading Report...</p>
+    </div>
+
+    <div class="mt-10 flex space-x-4 justify-center">
+        <a href="/" class="bg-purple-600 px-8 py-3 rounded-lg font-bold text-white hover:bg-purple-700">Scan New URL</a>
+        <button onclick="window.print()" class="bg-gray-700 px-8 py-3 rounded-lg font-bold text-white hover:bg-gray-600">Print Report</button>
+    </div>
+</div>
+
+<script>
+window.onload = function() {
+    const data = JSON.parse(localStorage.getItem('scanResult'));
+    const url = localStorage.getItem('targetUrl');
+
+    if (!data) {
+        window.location.href = "/";
+        return;
+    }
+
+    document.getElementById('displayTarget').innerText = "Target: " + url;
+
+    const headerNames = {
+        "csp": "Content-Security-Policy",
+        "hsts": "Strict-Transport-Security",
+        "x_frame": "X-Frame-Options",
+        "x_content_type": "X-Content-Type-Options",
+        "referer_policy": "Referrer-Policy",
+        "set_cookie_for_httpOnly": "Cookie: HttpOnly Flag",
+        "set_cookie_for_secure": "Cookie: Secure Flag",
+        "set_cookie": "Cookie: SameSite Policy",
+        "permissions_policy": "Permissions-Policy",
+        "access_control_allow_origin": "CORS Policy",
+        "clear_site_data": "Clear-Site-Data",
+        "coop": "COOP Policy",
+        "server_name": "Server Information Leak",
+        "x_powered_by": "Technology Stack Disclosure"
+    };
+
+    let html = '';
+
+    for (const [key, value] of Object.entries(data)) {
+        if (headerNames[key]) {
+            let color = "purple-500"; 
+            if (value.status === 'SECURE') color = "green-500";
+            else if (value.status === 'WARNING') color = "yellow-500";
+            else if (value.status === 'MISSING' || value.status === 'CRITICAL') color = "red-500";
+
+            html += `
+            <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-3">${headerNames[key]}</h3>
+                        <p class="text-sm text-gray-300 mb-2">
+                            <span class="text-purple-400 font-bold mr-2 uppercase">Impact:</span> ${value.impact}
+                        </p>
+                        <p class="text-sm text-gray-300">
+                            <span class="text-purple-400 font-bold mr-2 uppercase">Verdict:</span> ${value.solution}
+                        </p>
+                    </div>
+                    <div class="bg-gray-900 border border-${color} px-4 py-2 rounded text-sm font-bold text-white ml-4 min-w-[100px] text-center" style="color: ${color.replace('500', '400')}">
+                        ${value.status}
+                    </div>
+                </div>
+            </div>`;
+        }
+    }
+    document.getElementById('reportSection').innerHTML = html;
+};
+</script>
+{% endblock %}
+
+
+
+
+{% comment %} {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -239,4 +329,6 @@
         </button>
     </div>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}
+
+

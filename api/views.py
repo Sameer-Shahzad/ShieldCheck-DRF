@@ -8,7 +8,10 @@ from api.serializers import ScanSerializer
 import requests
 from urllib.parse import urlparse
 import socket, ipaddress, re
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import requests.exceptions
+import re
 
 class scanView(APIView):
     throttle_classes = [UserRateThrottle, AnonRateThrottle]
@@ -24,8 +27,6 @@ class scanView(APIView):
         if serializer.is_valid():
             scan_instance = serializer.save()
             target_url = scan_instance.url
-
-##### SSRF PROTECTION CODE #####
 
             parsed = urlparse(target_url)
 
@@ -43,7 +44,6 @@ class scanView(APIView):
                 return Response({"error": "Blocked unsafe port"}, status=403)
             resolved_ip = None
             try:
-                # Resolve all IPs (IPv4 + IPv6)
                 addr_info = socket.getaddrinfo(hostname, None)
 
                 for result in addr_info:
@@ -67,14 +67,22 @@ class scanView(APIView):
             except socket.gaierror:
                 return Response({"error": "DNS resolution failed"}, status=400)
 
-
-##### HTTP SECURITY HEADERS CHECKING CODE #####
+            headers_for_scan = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
 
             try:
-                redirect_response = requests.get(f"https://{resolved_ip}/", headers={"Host": hostname}, timeout=10, allow_redirects=False, verify=True)
-            except requests.exceptions.RequestException:
-                return Response({"error": "something"}, status=400)
-
+                redirect_response = requests.get(
+                    target_url, 
+                    headers=headers_for_scan, 
+                    timeout=10, 
+                    allow_redirects=True, 
+                    verify=False
+                )
+                headers = redirect_response.headers
+            except Exception as e:
+                return Response({"error": f"Scan failed: {str(e)}"}, status=400)
+                
             headers = redirect_response.headers
 
             csp = headers.get('Content-Security-Policy', '')
@@ -105,7 +113,6 @@ class scanView(APIView):
             else:
 
                 if 'max-age' in hsts.lower():
-                    import re
                     match = re.search(r'max-age=(\d+)', hsts)
                     max_age_number = int(match.group(1)) if match else 0
 
@@ -182,15 +189,18 @@ class scanView(APIView):
             if not permission_policy:
                 permission_policy_status = 'MISSING'
                 permission_policy_impact = 'Low'
-                permission_policy_solution = 'Implement Permissions-Policy to control access to powerful features.'
-            elif 'geolocation' in permission_policy.lower() or 'camera' in permission_policy.lower() or 'microphone' in permission_policy.lower():
+                permission_policy_solution = 'Implement Permissions-Policy to control access.'
+            elif any(x in permission_policy.lower() for x in ['geolocation', 'camera', 'microphone']):
                 permission_policy_status = 'WARNING'
                 permission_policy_impact = 'Medium'
-                permission_policy_solution = 'Review Permissions-Policy to restrict access to sensitive features.'
-                
+                permission_policy_solution = 'Review sensitive feature access.'
+            else:
+                permission_policy_status = 'SECURE'
+                permission_policy_impact = 'Low'
+                permission_policy_solution = 'Permissions-Policy is present.'
             
             set_cookie = headers.get('Set-Cookie', '')
-            
+        
             if 'httponly' in set_cookie.lower():
                 set_cookie_httpOnly_status = 'SECURE'
                 set_cookie_httpOnly_impact = 'Low'
@@ -315,7 +325,7 @@ class scanView(APIView):
                 coop_status = 'WARNING'
                 coop_impact = 'Medium'
                 coop_solution = 'Use same-origin for Cross-Origin-Opener-Policy to enhance security.'
-                
+            
             server_name = headers.get('Server', '')
             x_powered_by = headers.get('X-Powered-By', '')
             
@@ -324,11 +334,11 @@ class scanView(APIView):
                 server_name_impact = 'Low'
                 server_name_solution = 'Server header is not present, which is good for security.'
             else:
-               if re.search(r'\d', server_name):
+                if re.search(r'\d', server_name):
                     server_name_status = 'WARNING'
                     server_name_impact = 'HIGH'
                     server_name_solution = 'Avoid disclosing server version information in the Server header to reduce attack surface.'
-               else:
+                else:
                     server_name_status = 'SECURE'
                     server_name_impact = 'Low'
                     server_name_solution = 'Server header is present but does not disclose version information, which is good for security.'
@@ -343,81 +353,77 @@ class scanView(APIView):
                 x_powered_by_solution = 'Avoid disclosing technology stack information in the X-Powered-By header to reduce attack surface.'
                     
                 
-                
             return Response({
-            "csp": {
-                "status": csp_status,
-                "impact": csp_impact,
-                "solution": csp_solution
-            },
-            "hsts": {
-                "status": hsts_status,
-                "impact": hsts_impact,
-                "solution": hsts_solution
-            },
-            "x_frame": {
-                "status": x_frame_status,
-                "impact": x_frame_impact,
-                "solution": x_frame_solution
-            },
-            "x_content_type": {
-                "status": x_content_type_status,
-                "impact": x_content_type_impact,
-                "solution": x_content_type_solution
-            },
-            "referer_policy": {
-                "status": referer_policy_status,
-                "impact": referer_policy_impact,
-                "solution": referer_policy_solution
-            },
-            "set_cookie_for_httpOnly": {
-                "status": set_cookie_httpOnly_status,
-                "impact": set_cookie_httpOnly_impact,
-                "solution": set_cookie_httpOnly_solution
-            },
-            "set_cookie_for_secure": {
-                "status": set_cookie_secure_status,
-                "impact": set_cookie_secure_impact,
-                "solution": set_cookie_secure_solution
-            },
-            "set_cookie": {
-                "status": set_cookie_status,
-                "impact": set_cookie_impact,
-                "solution": set_cookie_solution
-            },
-            "permissions_policy": {
-                "status": permission_policy_status,
-                "impact": permission_policy_impact,
-                "solution": permission_policy_solution
-            },
-            "access_control_allow_origin": {
-                "status": access_control_status,
-                "impact": access_control_impact,
-                "solution": access_control_solution
-            },
-            "clear_site_data": {
-                "status": clear_site_data_status,
-                "impact": clear_site_data_impact,
-                "solution": clear_site_data_solution    
-            },
-            "coop": {
-                "status": coop_status,
-                "impact": coop_impact,
-                "solution": coop_solution
-            },
-            "server_name": {
-                "status": server_name_status,
-                "impact": server_name_impact,
-                "solution": server_name_solution
-            },
-            "x_powered_by": {
-                "status": x_powered_by_status,
-                "impact": x_powered_by_impact,
-                "solution": x_powered_by_solution
-            },}, status=200)
-                
-                    
+                "csp": {
+                    "status": csp_status,
+                    "impact": csp_impact,
+                    "solution": csp_solution
+                },
+                "hsts": {
+                    "status": hsts_status,
+                    "impact": hsts_impact,
+                    "solution": hsts_solution
+                },
+                "x_frame": {
+                    "status": x_frame_status,
+                    "impact": x_frame_impact,
+                    "solution": x_frame_solution
+                },
+                "x_content_type": {
+                    "status": x_content_type_status,
+                    "impact": x_content_type_impact,
+                    "solution": x_content_type_solution
+                },
+                "referer_policy": {
+                    "status": referer_policy_status,
+                    "impact": referer_policy_impact,
+                    "solution": referer_policy_solution
+                },
+                "set_cookie_for_httpOnly": {
+                    "status": set_cookie_httpOnly_status,
+                    "impact": set_cookie_httpOnly_impact,
+                    "solution": set_cookie_httpOnly_solution
+                },
+                "set_cookie_for_secure": {
+                    "status": set_cookie_secure_status,
+                    "impact": set_cookie_secure_impact,
+                    "solution": set_cookie_secure_solution
+                },
+                "set_cookie": {
+                    "status": set_cookie_status,
+                    "impact": set_cookie_impact,
+                    "solution": set_cookie_solution
+                },
+                "permissions_policy": {
+                    "status": permission_policy_status,
+                    "impact": permission_policy_impact,
+                    "solution": permission_policy_solution
+                },
+                "access_control_allow_origin": {
+                    "status": access_control_status,
+                    "impact": access_control_impact,
+                    "solution": access_control_solution
+                },
+                "clear_site_data": {
+                    "status": clear_site_data_status,
+                    "impact": clear_site_data_impact,
+                    "solution": clear_site_data_solution    
+                },
+                "coop": {
+                    "status": coop_status,
+                    "impact": coop_impact,
+                    "solution": coop_solution
+                },
+                "server_name": {
+                    "status": server_name_status,
+                    "impact": server_name_impact,
+                    "solution": server_name_solution
+                },
+                "x_powered_by": {
+                    "status": x_powered_by_status,
+                    "impact": x_powered_by_impact,
+                    "solution": x_powered_by_solution
+                },}, status=200)
+
         else:
             return Response({"error": "Invalid serializer data"}, status=400)
-
-       
