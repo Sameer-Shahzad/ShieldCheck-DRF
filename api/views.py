@@ -7,7 +7,7 @@ from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from api.serializers import ScanSerializer
 import requests
 from urllib.parse import urlparse
-import socket, ipaddress
+import socket, ipaddress, re
 
 
 class scanView(APIView):
@@ -316,6 +316,33 @@ class scanView(APIView):
                 coop_impact = 'Medium'
                 coop_solution = 'Use same-origin for Cross-Origin-Opener-Policy to enhance security.'
                 
+            server_name = headers.get('Server', '')
+            x_powered_by = headers.get('X-Powered-By', '')
+            
+            if not server_name:
+                server_name_status = 'SECURE'
+                server_name_impact = 'Low'
+                server_name_solution = 'Server header is not present, which is good for security.'
+            else:
+               if re.search(r'\d', server_name):
+                    server_name_status = 'WARNING'
+                    server_name_impact = 'HIGH'
+                    server_name_solution = 'Avoid disclosing server version information in the Server header to reduce attack surface.'
+               else:
+                    server_name_status = 'SECURE'
+                    server_name_impact = 'Low'
+                    server_name_solution = 'Server header is present but does not disclose version information, which is good for security.'
+                    
+            if not x_powered_by:
+                x_powered_by_status = 'SECURE'
+                x_powered_by_impact = 'Low'
+                x_powered_by_solution = 'X-Powered-By header is not present, which is good for security.'
+            else:
+                x_powered_by_status = 'WARNING'
+                x_powered_by_impact = 'Medium'
+                x_powered_by_solution = 'Avoid disclosing technology stack information in the X-Powered-By header to reduce attack surface.'
+                    
+                
                 
             return Response({
             "csp": {
@@ -338,7 +365,7 @@ class scanView(APIView):
                 "impact": x_content_type_impact,
                 "solution": x_content_type_solution
             },
-            "referer-policy": {
+            "referer_policy": {
                 "status": referer_policy_status,
                 "impact": referer_policy_impact,
                 "solution": referer_policy_solution
@@ -377,8 +404,17 @@ class scanView(APIView):
                 "status": coop_status,
                 "impact": coop_impact,
                 "solution": coop_solution
-            }
-            }, status=200)
+            },
+            "server_name": {
+                "status": server_name_status,
+                "impact": server_name_impact,
+                "solution": server_name_solution
+            },
+            "x_powered_by": {
+                "status": x_powered_by_status,
+                "impact": x_powered_by_impact,
+                "solution": x_powered_by_solution
+            },}, status=200)
                 
                     
         else:
