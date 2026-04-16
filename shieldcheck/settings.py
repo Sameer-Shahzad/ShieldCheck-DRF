@@ -137,6 +137,17 @@ REST_FRAMEWORK = {
     }
 }
 
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Agar aap localhost par test kar rahe hain (CORS issue)
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 # HSTS (Strict-Transport-Security)
 # SECURE_HSTS_SECONDS = 31536000     
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True 

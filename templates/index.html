@@ -16,6 +16,7 @@
 </div>
 
 <script>
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 document.getElementById('auditForm').addEventListener('submit', async function(e) {
     e.preventDefault(); 
     
@@ -25,9 +26,12 @@ document.getElementById('auditForm').addEventListener('submit', async function(e
     btn.innerText = "Scanning... Please Wait";
     btn.disabled = true;
 
+    await sleep(2000);
+
     try {
         const response = await fetch('/api/v1/scan/', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
@@ -37,8 +41,7 @@ document.getElementById('auditForm').addEventListener('submit', async function(e
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.log("Backend se ye HTML aayi hai:", errorText);
-            alert("Backend Error! Console (F12) check karein.");
+            alert("Audit Failed: Unable to reach the target server. Please verify the URL or try again in a few moments.");
             return;
         }
 
@@ -49,51 +52,19 @@ document.getElementById('auditForm').addEventListener('submit', async function(e
             localStorage.setItem('targetUrl', urlInput);
             
             window.location.href = "/report/"; 
+            btn.innerText = "Run Security Audit";
+            btn.disabled = false;
         } else {
-            alert("Error: " + data.error);
+            alert("Audit Failed: Unable to reach the target server. Please verify the URL or try again later.");
             btn.innerText = "Run Security Audit";
             btn.disabled = false;
         }
     } catch (err) {
         alert("Scan failed.");
-        alert("Scan failed: " + err.message);
         btn.disabled = false;
     }
 });
 </script>
 {% endblock %}
-
-
-
-{% comment %} {% extends 'base.html' %}
-
-{% block content %}
-<div class="max-w-2xl mx-auto text-center mt-10">
-    <h1 class="text-4xl font-extrabold mb-4">Protect Your Website</h1>
-    <p class="text-gray-400 mb-8">Enter your URL below to audit 10+ critical security headers including HSTS, CSP, X-Frame-Options, CORS, and Cookie Flags to protect against XSS, Clickjacking and other vulnerabilities.</p>
-    
-    <form class="flex flex-col gap-4">
-        <p class="text-gray-400 mb-3"> URL must start with <span class="text-purple-400 font-mono">https://</span> and be a valid domain.</p>
-
-        {% if success %}
-            <div class="bg-green-500 text-white px-4 py-3 rounded mb-4">
-                URL Submitted Successfully! Your scan is in progress...
-            </div>
-        {% elif errors %}
-            <div class="bg-red-500 text-white px-4 py-3 rounded mb-4">
-                {{ errors }}
-            </div>
-        {% endif %}
-
-        <input type="url" id="targetUrl" placeholder="https://example.com" 
-               class="w-full px-5 py-4 rounded-lg bg-gray-800 border border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 text-white">
-        <button onClick="startScan()" type="submit" id="scanBtn" 
-                class="purple-gradient hover:opacity-90 py-4 rounded-lg font-bold text-lg shadow-xl transition transform hover:-translate-y-1">
-            Run Security Audit
-        </button>
-    </form>
-</div>
-{% endblock %} {% endcomment %}
-
 
 

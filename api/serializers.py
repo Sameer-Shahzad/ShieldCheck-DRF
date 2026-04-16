@@ -3,9 +3,11 @@ from .models import Scan
 
 
 class ScanSerializer(serializers.ModelSerializer):
+    
+    session_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     class Meta:
         model = Scan
-        fields = ['id', 'url', 'scan_date', 'status', 'findings']
+        fields = ['session_id', 'url', 'scan_date', 'status', 'findings']
         
-        read_only_fields = ['id', 'scan_date', 'status', 'findings']
+        read_only_fields = ['scan_date', 'status', 'findings']
         

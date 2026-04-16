@@ -18,11 +18,17 @@ class scanView(APIView):
 
     def post(self, request):
         url = request.data.get('url')
+        if not request.session.session_key:
+            request.session.create()
+        request.session['initiated'] = True
+        request.session.modified = True
+        
+        session_id = request.session.session_key
 
         if not url:
             return Response({"error": "URL is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = ScanSerializer(data={'url': url})
+        serializer = ScanSerializer(data={'url': url, 'session_id': session_id})
 
         if serializer.is_valid():
             scan_instance = serializer.save()
@@ -94,7 +100,7 @@ class scanView(APIView):
 
             elif 'unsafe-inline' in csp.lower() or 'unsafe-eval' in csp.lower():
                 csp_status = 'WARNING'
-                csp_impact = 'Medium'
+                csp_impact = 'High'
                 csp_solution = 'Remove unsafe directives from your CSP to enhance security.'
 
             else:
@@ -118,22 +124,22 @@ class scanView(APIView):
 
                     if max_age_number < 31536000:
                         hsts_status = 'WARNING'
-                        hsts_impact = 'Short HSTS duration increases risk of SSL stripping'
+                        hsts_impact = 'Medium'
                         hsts_solution = 'Set max-age to at least 31536000 seconds.'
 
                     elif 'includesubdomains' not in hsts.lower():
                         hsts_status = 'WARNING'
-                        hsts_impact = 'Subdomains not protected'
+                        hsts_impact = 'Medium'
                         hsts_solution = 'Include includeSubDomains directive.'
 
                     else:
                         hsts_status = 'SECURE'
-                        hsts_impact = 'Good configuration'
+                        hsts_impact = 'Low'
                         hsts_solution = 'HSTS is properly configured.'
 
                 else:
                     hsts_status = 'WARNING'
-                    hsts_impact = 'Max age missing'
+                    hsts_impact = 'Medium'
                     hsts_solution = 'Set max-age to at least 31536000 seconds.'
                     
                 
@@ -283,8 +289,8 @@ class scanView(APIView):
                 access_control_impact = 'High'
                 access_control_solution = 'Avoid using wildcard (*) in Access-Control-Allow-Origin to prevent unauthorized cross-origin requests.'
                 if credentials.lower() == 'true':
-                    access_control_status = 'CRITICAL'
-                    access_control_impact = 'Critical'
+                    access_control_status = 'WARNING'
+                    access_control_impact = 'High'
                     access_control_solution = 'Using wildcard (*) in Access-Control-Allow-Origin with Access-Control-Allow-Credentials set to true is a critical security risk. Avoid this configuration to prevent unauthorized cross-origin requests with credentials.'
             elif access_control and strip_access_control != 'null':
                 access_control_status = 'SECURE'
@@ -315,7 +321,7 @@ class scanView(APIView):
                 coop_solution = 'Implement Cross-Origin-Opener-Policy to enhance isolation and protect against cross-origin attacks.'
             elif 'same-origin-allow-popups' in coop.lower():
                 coop_status = 'WARNING'
-                coop_impact = 'Low'
+                coop_impact = 'Medium'
                 coop_solution = 'Cross-Origin-Opener-Policy is set to same-origin-allow-popups, which may introduce security risks.'
             elif 'same-origin' in coop.lower():
                 coop_status = 'SECURE'
@@ -336,7 +342,7 @@ class scanView(APIView):
             else:
                 if re.search(r'\d', server_name):
                     server_name_status = 'WARNING'
-                    server_name_impact = 'HIGH'
+                    server_name_impact = 'Medium'
                     server_name_solution = 'Avoid disclosing server version information in the Server header to reduce attack surface.'
                 else:
                     server_name_status = 'SECURE'

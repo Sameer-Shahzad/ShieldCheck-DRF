@@ -7,6 +7,12 @@ def home (request):
     return render(request, 'index.html')
 
 def history (request):
+    id = request.GET.get('id')
+    url = request.GET.get('url')
+    scan_date = request.GET.get('scan_date')
+    findings = request.GET.get('findings')
+    
+    
     return render(request, 'history.html')
 
 def about (request):

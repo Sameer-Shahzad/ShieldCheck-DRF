@@ -5,6 +5,7 @@ import uuid
 
 
 class Scan(models.Model):
+    session_id = models.CharField(max_length=100, blank=True, null=True)
     external_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     url = models.URLField()
     scan_date = models.DateTimeField(auto_now_add=True)
