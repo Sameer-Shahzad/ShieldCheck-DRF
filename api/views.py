@@ -221,7 +221,7 @@ class scanView(APIView):
                         set_cookie_solution = 'Cookies are properly configured. HttpOnly, Secure, and SameSite flags are set.'
                     elif 'samesite=none' in set_cookie.lower():
                         set_cookie_status = 'WARNING'
-                        set_cookie_impact = 'Critical'
+                        set_cookie_impact = 'High'
                         set_cookie_solution = 'Strictly avoid using SameSite=None unless necessary, as it allows cross-site cookie usage. However, HttpOnly and Secure flags are set, which is good.'
                     else:
                         set_cookie_status = 'WARNING'
@@ -237,7 +237,7 @@ class scanView(APIView):
                         set_cookie_solution = 'Cookies are properly configured. HttpOnly, Secure, and SameSite flags are set.'
                     elif 'samesite=none' in set_cookie.lower():
                         set_cookie_status = 'WARNING'
-                        set_cookie_impact = 'Critical'
+                        set_cookie_impact = 'High'
                         set_cookie_solution = 'Strictly avoid using SameSite=None unless necessary, as it allows cross-site cookie usage. However, HttpOnly and Secure flags are set, which is good.'
                     else:
                         set_cookie_status = 'WARNING'

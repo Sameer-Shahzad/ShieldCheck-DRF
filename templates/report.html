@@ -9,7 +9,7 @@
                 <h1 class="text-2xl font-bold text-white">Security Audit Report</h1>
                 <p id="displayTarget" class="text-purple-400 font-mono"></p>
             </div>
-            <div id="grade" class="bg-yellow-500 text-black px-6 py-4 rounded-full font-black text-3xl">B-</div>
+            <div id="grade" class="bg-yellow-500 text-black px-6 py-4 rounded-full font-black text-3xl">--</div>
         </div>
     </div>
 
@@ -53,16 +53,31 @@ window.onload = function() {
     };
 
     let html = '';
+    let totalScore = 0; 
 
     for (const [key, value] of Object.entries(data)) {
         if (headerNames[key]) {
-            let color = "purple-500"; 
-            if (value.status === 'SECURE') color = "green-500";
-            else if (value.status === 'WARNING') color = "yellow-500";
-            else if (value.status === 'MISSING' || value.status === 'CRITICAL') color = "red-500";
+            let statusColor = "purple-500"; 
+            
+            if (value.status === 'SECURE') {
+                totalScore += 10;
+                statusColor = "green-500";
+            }
+            else if (value.status === 'WARNING') {
+                totalScore += 5;
+                statusColor = "yellow-500";
+            }
+            else if (value.status === 'MISSING') {
+                totalScore -= 5;
+                statusColor = "red-500";
+            }
+            else if (value.status === 'CRITICAL') {
+                totalScore -= 20;
+                statusColor = "red-500";
+            }
 
             html += `
-            <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 mb-4">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <h3 class="text-xl font-bold text-white mb-3">${headerNames[key]}</h3>
@@ -73,15 +88,36 @@ window.onload = function() {
                             <span class="text-purple-400 font-bold mr-2 uppercase">Verdict:</span> ${value.solution}
                         </p>
                     </div>
-                    <div class="bg-gray-900 border border-${color} px-4 py-2 rounded text-sm font-bold text-white ml-4 min-w-[100px] text-center" style="color: ${color.replace('500', '400')}">
+                    <div class="bg-gray-900 border border-${statusColor} px-4 py-2 rounded text-sm font-bold text-white ml-4 min-w-[100px] text-center" style="color: ${statusColor.replace('500', '400')}">
                         ${value.status}
                     </div>
                 </div>
             </div>`;
         }
     }
+
+    let finalGrade = 'F';
+    let gradeDisplayColor = 'bg-red-500';
+
+    if (totalScore >= 80) {
+        finalGrade = 'A';
+        gradeDisplayColor = 'bg-green-500';
+    } else if (totalScore >= 60) {
+        finalGrade = 'B';
+        gradeDisplayColor = 'bg-blue-500';
+    } else if (totalScore >= 40) {
+        finalGrade = 'C';
+        gradeDisplayColor = 'bg-yellow-500';
+    } else if (totalScore >= 20) {
+        finalGrade = 'D';
+        gradeDisplayColor = 'bg-orange-500';
+    }
+
+    const gradeElement = document.getElementById('grade');
+    gradeElement.innerText = finalGrade;
+    gradeElement.className = `${gradeDisplayColor} text-black px-6 py-4 rounded-full font-black text-3xl`;
+    
     document.getElementById('reportSection').innerHTML = html;
 };
 </script>
 {% endblock %}
-
